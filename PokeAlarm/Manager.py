@@ -409,7 +409,7 @@ class Manager(object):
                 log.debug("Pokemon 'level' was not checked because it was missing.")
 
             # Check the IV percent of the Pokemon
-            if iv is not None and iv != 'unkn' and iv != '?':
+            if iv != '?':
                 if not filt.check_iv(iv):
                     if self.__quiet is False:
                         log.info("{} rejected: IV percent ({:.2f}) not in range {:.2f} to {:.2f} - (F #{})".format(
@@ -422,11 +422,11 @@ class Manager(object):
                 log.debug("Pokemon IV percent was not checked because it was missing.")
 
             # Check the Attack IV of the Pokemon
-            if attack is not None and attack != 'unkn' and attack != '?':
-                if not filt.check_atk(attack):
+            if atk != '?':
+                if not filt.check_atk(atk):
                     if self.__quiet is False:
                         log.info("{} rejected: Attack IV ({}) not in range {} to {} - (F #{})".format(
-                            name, attack, filt.min_atk, filt.max_atk, filt_ct))
+                            name, atk, filt.min_atk, filt.max_atk, filt_ct))
                     continue
             else:
                 if filt.ignore_missing is True:
@@ -435,11 +435,11 @@ class Manager(object):
                 log.debug("Pokemon 'atk' was not checked because it was missing.")
 
             # Check the Defense IV of the Pokemon
-            if defense is not None and defense != 'unkn' and defense != '?':
-                if not filt.check_def(defense):
+            if def_ != '?':
+                if not filt.check_def(def_):
                     if self.__quiet is False:
                         log.info("{} rejected: Defense IV ({}) not in range {} to {} - (F #{})".format(
-                            name, defense, filt.min_atk, filt.max_atk, filt_ct))
+                            name, def_, filt.min_atk, filt.max_atk, filt_ct))
                     continue
             else:
                 if filt.ignore_missing is True:
@@ -448,8 +448,8 @@ class Manager(object):
                 log.debug("Pokemon 'def' was not checked because it was missing.")
 
             # Check the Stamina IV of the Pokemon
-            if stamina is not None and stamina != 'unkn' and stamina != '?':
-                if not filt.check_sta(stamina):
+            if sta != '?':
+                if not filt.check_sta(sta):
                     if self.__quiet is False:
                         log.info("{} rejected: Stamina IV ({}) not in range {} to {} - (F #{}).".format(
                             name, sta, filt.min_sta, filt.max_sta, filt_ct))
@@ -789,14 +789,7 @@ class Manager(object):
             return
 
         # Check if gym info is available in the cache
-        if self.__cache.in_gym_cache(gym_id):
-            gym_info = self.__cache.get_gym(gym_id)
-        else:
-            gym_info = {
-                'name': 'Unknown Gym',
-                'description': '',
-                'url': ''
-            }
+        gym_info = self.get_gym_details(gym_id)
 
         gym.update({
             "name": gym_info['name'],
@@ -1032,14 +1025,27 @@ class Manager(object):
         if self.__api_req['DRIVE_DIST']:
             info.update(**self.get_driving_data(lat, lng))
 
+    # Get gym details from cache or default
+    def get_gym_details(self,gym_id):
+        if self.__cache.in_gym_cache(gym_id):
+            gym_info = self.__cache.get_gym(gym_id)
+        else:
+            gym_info = {
+                'name': 'unknown',
+                'description': '',
+                'url': 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'
+            }
+
+        return gym_info
+
     # Add gym details to an info object
     def add_gym_details(self, info, gym_id):
-        if gym_id in self.__gym_info:
-            info.update( {
-                "gym_name": self.__gym_info[gym_id]['name'],
-                "gym_description": self.__gym_info[gym_id]['description'],
-                "gym_url": self.__gym_info[gym_id]['url']
-            })
+        gym_info = self.get_gym_details(gym_id)
+        info.update( {
+            "gym_name": gym_info['name'],
+            "gym_description": gym_info['description'],
+            "gym_url": gym_info['url']
+        })
 
     ####################################################################################################################
 
