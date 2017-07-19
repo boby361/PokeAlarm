@@ -725,14 +725,6 @@ class Manager(object):
         to_team_id = gym['team_id']
         from_team_id = self.__gym_hist.get(gym_id)
 
-        # Update Gym details (if they exist)
-        if gym_id not in self.__gym_info or gym['name'] != 'unknown':
-            self.__gym_info[gym_id] = {
-                "name": gym['name'],
-                "description": gym['description'],
-                "url": gym['url']
-            }
-
         # Doesn't look like anything to me
         if to_team_id == from_team_id:
             log.debug("Gym ignored: no change detected")
