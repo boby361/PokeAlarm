@@ -711,17 +711,19 @@ class Manager(object):
             thread.join()
 
     def process_gym(self, gym):
-        # Update Gym details (if they exist)
-        if (self.__cache_gyms or self.__gym_settings['enabled'] is True) \
-                and (self.__cache.in_gym_cache(gym['id']) is False or gym['name'] != 'unknown'):
-            self.__cache.put_gym(gym['id'], gym)
+        gym_id = gym['id']
+
+        if self.__gym_settings['enabled'] is True or self.__egg_settings['enabled'] is True \
+                or self.__raid_settings['enabled'] is True:
+            # Update Gym details (if they exist)
+            if self.__cache.in_gym_cache(gym['id']) is False or gym['name'] != 'unknown':
+                self.__cache.put_gym(gym['id'], gym)
 
         if self.__gym_settings['enabled'] is False:
             log.debug("Gym ignored: notifications are disabled.")
             return
 
         # Extract some basic information
-        gym_id = gym['id']
         to_team_id = gym['team_id']
         from_team_id = self.__gym_hist.get(gym_id)
 
@@ -888,6 +890,8 @@ class Manager(object):
             'dir': get_cardinal_dir([lat, lng], self.__latlng)
         })
 
+        self.add_gym_details(egg, id_)
+
         threads = []
         # Spawn notifications in threads so they can work in background
         for alarm in self.__alarms:
@@ -994,6 +998,8 @@ class Manager(object):
             'charge_move': self.__move_name.get(charge_id, 'unknown')
         })
 
+        self.add_gym_details(raid, id_)
+
         threads = []
         # Spawn notifications in threads so they can work in background
         for alarm in self.__alarms:
@@ -1025,6 +1031,15 @@ class Manager(object):
             info.update(**self.get_biking_data(lat, lng))
         if self.__api_req['DRIVE_DIST']:
             info.update(**self.get_driving_data(lat, lng))
+
+    # Add gym details to an info object
+    def add_gym_details(self, info, gym_id):
+        if gym_id in self.__gym_info:
+            info.update( {
+                "gym_name": self.__gym_info[gym_id]['name'],
+                "gym_description": self.__gym_info[gym_id]['description'],
+                "gym_url": self.__gym_info[gym_id]['url']
+            })
 
     ####################################################################################################################
 
